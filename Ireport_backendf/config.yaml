@@ -1,0 +1,45 @@
+# Azure DevOps Pipeline Configuration
+trigger:
+  branches:
+    include:
+    - main
+    - develop
+    - feature/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  buildConfiguration: 'Release'
+  nodeVersion: '18.x'
+  pythonVersion: '3.11'
+
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildBackend
+    displayName: 'Build FastAPI Backend'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(pythonVersion)'
+      displayName: 'Use Python $(pythonVersion)'
+    
+    - script: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      displayName: 'Install dependencies'
+
+  - job: BuildFrontend
+    displayName: 'Build Expo Frontend'
+    steps:
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '$(nodeVersion)'
+      displayName: 'Use Node.js $(nodeVersion)'
+    
+    - script: |
+        npm install
+        npx eas build --profile development --platform android
+      displayName: 'Install and build'
